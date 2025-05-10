@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crea tu Jardín para Mamá</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+            min-height: 100vh;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+        
+        .garden-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .message-board {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            margin-bottom: 20px;
+            max-width: 90%;
+            z-index: 10;
+        }
+        
+        h1 {
+            color: #E91E63;
+            margin-bottom: 8px;
+            font-size: clamp(1.5rem, 5vw, 2rem);
+        }
+        
+        p {
+            color: #4A148C;
+            font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+            line-height: 1.4;
+        }
+        
+        .flower-counter {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 8px 12px;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            font-size: clamp(0.8rem, 3.5vw, 1rem);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .flower,
+        .photo-preview {
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.3s;
+            z-index: 5;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        .photo-preview {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 2px solid white;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+        }
+        
+        .controls {
+            position: fixed;
+            bottom: 15px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            padding: 0 10px;
+        }
+        
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: clamp(0.8rem, 3.5vw, 1rem);
+            cursor: pointer;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-grow: 1;
+            justify-content: center;
+            max-width: 45%;
+        }
+        
+        .btn:active {
+            transform: scale(0.96);
+        }
+        
+        .btn-special {
+            background: linear-gradient(45deg, #FF4081, #E91E63);
+        }
+        
+        .btn-music {
+            background: linear-gradient(45deg, #2196F3, #3F51B5);
+        }
+        
+        .btn-letter {
+            background: linear-gradient(45deg, #FF9800, #FF5722);
+        }
+        
+        .btn-share {
+            background: linear-gradient(45deg, #9C27B0, #673AB7);
+        }
+        
+        .btn-photo {
+            background: linear-gradient(45deg, #607D8B, #455A64);
+        }
+        
+        .butterfly {
+            position: absolute;
+            z-index: 4;
+            font-size: clamp(1.2rem, 6vw, 1.8rem);
+            animation: fly linear infinite;
+            opacity: 0.8;
+            pointer-events: none;
+        }
+        
+        .music-control {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.85);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+        /* Modal de carta */
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #888;
+            background: none;
+            border: none;
+        }
+        
+        .letter-editor {
+            width: 100%;
+            min-height: 150px;
+            margin: 15px 0;
+            padding: 12px;
+            border: 2px dashed #E91E63;
+            border-radius: 8px;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+            resize: none;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        /* Input de fotos */
+        
+        #photoInput {
+            display: none;
+        }
+        
+        .photo-thumbnails {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+        
+        .photo-thumbnail {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        /* Animaciones */
+        
+        @keyframes fly {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% {
+                transform: translate(15px, -10px) rotate(10deg);
+            }
+            50% {
+                transform: translate(30px, 0) rotate(0deg);
+            }
+            75% {
+                transform: translate(15px, 10px) rotate(-10deg);
+            }
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+        }
+        
+        @keyframes grow {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 0;
+            }
+            80% {
+                transform: scale(1.1) rotate(10deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <div class="garden-container" id="gardenContainer">
+        <div class="flower-counter" id="counter">
+            <i class="fas fa-seedling"></i> <span id="flowerCount">0</span>
+            <i class="fas fa-camera"></i> <span id="photoCount">0</span>
+        </div>
+
+        <div class="music-control" id="musicControl">
+            <i class="fas fa-music"></i>
+        </div>
+
+        <div class="message-board">
+            <h1>¡Crea un Jardín para Mamá!</h1>
+            <p>Toca la pantalla para plantar flores o agregar fotos.</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="changeFlowerBtn">
+                <i class="fas fa-exchange-alt"></i> <span class="btn-text">Cambiar Flor</span>
+            </button>
+            <button class="btn btn-photo" id="photoBtn">
+                <i class="fas fa-camera"></i> <span class="btn-text">Agregar Foto</span>
+            </button>
+            <button class="btn btn-letter" id="letterBtn">
+                <i class="fas fa-envelope"></i> <span class="btn-text">Escribir Carta</span>
+            </button>
+            <button class="btn btn-share" id="shareBtn">
+                <i class="fas fa-share-alt"></i> <span class="btn-text">Ver Resultado</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Input para fotos -->
+    <input type="file" id="photoInput" accept="image/*" capture="environment" multiple>
+
+    <!-- Modal de carta -->
+    <div class="modal" id="letterModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeLetterModal">&times;</button>
+            <h2 style="color: #E91E63; margin-bottom: 10px;">Escribe tu carta</h2>
+            <textarea class="letter-editor" id="letterEditor" placeholder="Querida mamá..."></textarea>
+
+            <div style="margin-top: 15px;">
+                <button class="btn btn-photo" id="addPhotoBtn" style="width: 100%;">
+                    <i class="fas fa-plus"></i> Agregar Foto a la Carta
+                </button>
+                <div class="photo-thumbnails" id="letterPhotos"></div>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn btn-letter" id="saveLetterBtn">
+                    <i class="fas fa-save"></i> <span class="btn-text">Guardar</span>
+                </button>
+                <button class="btn" id="previewBtn">
+                    <i class="fas fa-eye"></i> <span class="btn-text">Vista Previa</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="backgroundMusic" loop>
+        <source src="mama.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Configuración inicial
+        const flowerTypes = ['🌹', '🌸', '🌺', '🌻', '🌼', '🌷', '💐', '🏵️'];
+        let currentFlowerType = 0;
+        let flowerCount = 0;
+        let photoCount = 0;
+        let garden = [];
+        let photos = [];
+        let isMusicPlaying = false;
+
+        // Elementos del DOM
+        const gardenContainer = document.getElementById('gardenContainer');
+        const flowerCountSpan = document.getElementById('flowerCount');
+        const photoCountSpan = document.getElementById('photoCount');
+        const changeFlowerBtn = document.getElementById('changeFlowerBtn');
+        const photoBtn = document.getElementById('photoBtn');
+        const letterBtn = document.getElementById('letterBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const musicControl = document.getElementById('musicControl');
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const letterModal = document.getElementById('letterModal');
+        const letterEditor = document.getElementById('letterEditor');
+        const saveLetterBtn = document.getElementById('saveLetterBtn');
+        const previewBtn = document.getElementById('previewBtn');
+        const closeLetterModal = document.getElementById('closeLetterModal');
+        const photoInput = document.getElementById('photoInput');
+        const addPhotoBtn = document.getElementById('addPhotoBtn');
+        const letterPhotos = document.getElementById('letterPhotos');
+
+        // Inicialización
+        function init() {
+            setupEventListeners();
+            tryAutoPlayMusic();
+            loadSavedData();
+            createButterflies(3);
+        }
+
+        function setupEventListeners() {
+            // Cambiar tipo de flor
+            changeFlowerBtn.addEventListener('click', changeFlowerType);
+
+            // Agregar fotos
+            photoBtn.addEventListener('click', () => photoInput.click());
+            photoInput.addEventListener('change', handlePhotoUpload);
+
+            // Plantar flores
+            gardenContainer.addEventListener('click', plantFlower);
+            gardenContainer.addEventListener('touchmove', handleTouchMove, {
+                passive: false
+            });
+
+            // Carta
+            letterBtn.addEventListener('click', () => letterModal.style.display = 'flex');
+            saveLetterBtn.addEventListener('click', saveLetter);
+            previewBtn.addEventListener('click', previewCard);
+            closeLetterModal.addEventListener('click', () => letterModal.style.display = 'none');
+            addPhotoBtn.addEventListener('click', () => photoInput.click());
+
+            // Compartir/Ver resultado
+            shareBtn.addEventListener('click', generateResult);
+        }
+
+        function changeFlowerType() {
+            currentFlowerType = (currentFlowerType + 1) % flowerTypes.length;
+            updateFlowerButton();
+        }
+
+        function updateFlowerButton() {
+            const btnText = changeFlowerBtn.querySelector('.btn-text');
+            btnText.textContent = `Flor: ${flowerTypes[currentFlowerType]}`;
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            plantFlower({
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+        }
+
+        function plantFlower(e) {
+            if (e.target.classList.contains('btn') || e.target.closest('.btn')) return;
+
+            const x = e.clientX || e.touches[0].clientX;
+            const y = e.clientY || e.touches[0].clientY;
+
+            createFlower(x, y);
+        }
+
+        function createFlower(x, y) {
+            const flower = document.createElement('div');
+            flower.className = 'flower';
+            flower.innerHTML = flowerTypes[currentFlowerType];
+            flower.style.left = `${x - 20}px`;
+            flower.style.top = `${y - 20}px`;
+            flower.style.fontSize = `${Math.random() * 20 + 20}px`;
+            flower.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+            if (Math.random() > 0.7) {
+                const colors = ['#FF4081', '#E91E63', '#9C27B0', '#3F51B5', '#2196F3', '#4CAF50'];
+                flower.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            flower.style.animation = 'grow 0.5s ease-out';
+
+            garden.push({
+                type: 'flower',
+                content: currentFlowerType,
+                x: x,
+                y: y,
+                size: parseFloat(flower.style.fontSize),
+                color: flower.style.color || '#000000'
+            });
+
+            gardenContainer.appendChild(flower);
+            flowerCount++;
+            flowerCountSpan.textContent = flowerCount;
+
+            setTimeout(() => flower.style.animation = '', 500);
+
+            flower.addEventListener('click', (e) => {
+                e.stopPropagation();
+                animateElement(flower);
+            });
+        }
+
+        function handlePhotoUpload(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const reader = new FileReader();
+
+                    reader.onload = function(event) {
+                        const photoUrl = event.target.result;
+
+                        // Posición aleatoria para la foto
+                        const x = Math.random() * (window.innerWidth - 100) + 50;
+                        const y = Math.random() * (window.innerHeight - 150) + 50;
+
+                        // Crear elemento de foto en el jardín
+                        createPhotoElement(photoUrl, x, y);
+
+                        // Guardar foto para la carta si está en el modal
+                        if (letterModal.style.display === 'flex') {
+                            addPhotoToLetter(photoUrl);
+                        }
+                    };
+
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            // Resetear el input para permitir la misma foto otra vez
+            e.target.value = '';
+        }
+
+        function createPhotoElement(photoUrl, x, y) {
+            const photo = document.createElement('img');
+            photo.className = 'photo-preview';
+            photo.src = photoUrl;
+            photo.style.left = `${x}px`;
+            photo.style.top = `${y}px`;
+            photo.style.animation = 'grow 0.5s ease-out';
+
+            garden.push({
+                type: 'photo',
+                content: photoUrl,
+                x: x,
+                y: y,
+                width: 60,
+                height: 60
+            });
+
+            gardenContainer.appendChild(photo);
+            photoCount++;
+            photoCountSpan.textContent = photoCount;
+
+            setTimeout(() => photo.style.animation = '', 500);
+
+            photo.addEventListener('click', (e) => {
+                e.stopPropagation();
+                animateElement(photo);
+            });
+        }
+
+        function addPhotoToLetter(photoUrl) {
+            const thumbnail = document.createElement('img');
+            thumbnail.className = 'photo-thumbnail';
+            thumbnail.src = photoUrl;
+
+            // Agregar miniaturas al modal de carta
+            letterPhotos.appendChild(thumbnail);
+
+            // Guardar referencia a la foto para la carta
+            photos.push(photoUrl);
+        }
+
+        function animateElement(element) {
+            element.style.transform = `scale(1.2) rotate(${Math.random() * 360}deg)`;
+            setTimeout(() => {
+                element.style.transform = `scale(1) rotate(${Math.random() * 360}deg)`;
+            }, 300);
+        }
+
+        function specialEffect() {
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const x = Math.random() * window.innerWidth;
+                    const y = Math.random() * window.innerHeight;
+                    createFlower(x, y);
+                }, i * 100);
+            }
+
+            showMessage('¡Te quiero mucho, mamá! ❤️');
+        }
+
+        function showMessage(text) {
+            const msg = document.createElement('div');
+            msg.textContent = text;
+            msg.style.position = 'fixed';
+            msg.style.top = '50%';
+            msg.style.left = '50%';
+            msg.style.transform = 'translate(-50%, -50%)';
+            msg.style.fontSize = 'clamp(1.5rem, 6vw, 2.5rem)';
+            msg.style.color = '#E91E63';
+            msg.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+            msg.style.padding = '15px 30px';
+            msg.style.borderRadius = '15px';
+            msg.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.2)';
+            msg.style.zIndex = '100';
+            msg.style.animation = 'grow 0.5s ease-out';
+
+            gardenContainer.appendChild(msg);
+
+            setTimeout(() => msg.remove(), 2000);
+        }
+
+        function createButterflies(count) {
+            for (let i = 0; i < count; i++) {
+                const butterfly = document.createElement('div');
+                butterfly.className = 'butterfly';
+                butterfly.innerHTML = '🦋';
+                butterfly.style.left = `${Math.random() * 100}vw`;
+                butterfly.style.top = `${Math.random() * 100}vh`;
+                butterfly.style.fontSize = `${Math.random() * 20 + 20}px`;
+                butterfly.style.color = `hsl(${Math.random() * 360}, 80%, 60%)`;
+                butterfly.style.animationDuration = `${Math.random() * 15 + 10}s`;
+
+                gardenContainer.appendChild(butterfly);
+            }
+        }
+
+        function toggleMusic() {
+            if (isMusicPlaying) {
+                backgroundMusic.pause();
+                musicControl.innerHTML = '<i class="fas fa-music"></i>';
+            } else {
+                backgroundMusic.play()
+                    .then(() => isMusicPlaying = true)
+                    .catch(e => console.log("Error al reproducir:", e));
+                musicControl.innerHTML = '<i class="fas fa-pause"></i>';
+            }
+            isMusicPlaying = !isMusicPlaying;
+        }
+
+        function tryAutoPlayMusic() {
+            backgroundMusic.volume = 0.3;
+            document.body.addEventListener('click', () => {
+                backgroundMusic.play().then(() => isMusicPlaying = true)
+                    .catch(e => console.log("Autoplay bloqueado:", e));
+            }, {
+                once: true
+            });
+        }
+
+        function saveLetter() {
+            localStorage.setItem('mothersDayLetter', letterEditor.value);
+            localStorage.setItem('mothersDayPhotos', JSON.stringify(photos));
+            showMessage('Carta guardada');
+            setTimeout(() => letterModal.style.display = 'none', 1000);
+        }
+
+        function previewCard() {
+            localStorage.setItem('mothersDayGarden', JSON.stringify(garden));
+            window.open('preview.html?preview=true', '_blank');
+        }
+
+        function generateResult() {
+            if (flowerCount === 0 && photoCount === 0) {
+                showMessage('¡Agrega flores o fotos primero!');
+                return;
+            }
+
+            localStorage.setItem('mothersDayGarden', JSON.stringify(garden));
+            localStorage.setItem('mothersDayLetter', letterEditor.value);
+            localStorage.setItem('mothersDayPhotos', JSON.stringify(photos));
+
+            // Crear enlace de compartir
+            const gardenData = {
+                flowers: garden.filter(item => item.type === 'flower'),
+                photos: garden.filter(item => item.type === 'photo'),
+                letter: letterEditor.value,
+                additionalPhotos: photos
+            };
+
+            const encodedData = encodeURIComponent(JSON.stringify(gardenData));
+
+            // Abrir vista previa en nueva pestaña
+            window.open('preview.html?data=' + encodedData, '_blank');
+        }
+
+        function loadSavedData() {
+            const savedLetter = localStorage.getItem('mothersDayLetter');
+            const savedPhotos = JSON.parse(localStorage.getItem('mothersDayPhotos') || '[]');
+
+            if (savedLetter) {
+                letterEditor.value = savedLetter;
+            }
+
+            if (savedPhotos.length > 0) {
+                photos = savedPhotos;
+                savedPhotos.forEach(photoUrl => {
+                    const thumbnail = document.createElement('img');
+                    thumbnail.className = 'photo-thumbnail';
+                    thumbnail.src = photoUrl;
+                    letterPhotos.appendChild(thumbnail);
+                });
+            }
+        }
+
+        // Iniciar
+        window.addEventListener('load', init);
+    </script>
+</body>
+
+</html>
