@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tu Jardín para Mamá</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(to bottom, #ffd6e7, #ffb3d9);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .card {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 600px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .garden-preview {
+            position: relative;
+            height: 300px;
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .flower,
+        .garden-photo {
+            position: absolute;
+        }
+        
+        .flower {
+            font-size: 24px;
+        }
+        
+        .garden-photo {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 2px solid white;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .garden-photo:hover {
+            transform: scale(1.1);
+        }
+        
+        .letter-content {
+            padding: 20px;
+            font-size: clamp(1rem, 4vw, 1.2rem);
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        
+        .letter-photos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        
+        .letter-photo {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #E91E63;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .letter-photo:hover {
+            transform: scale(1.1);
+        }
+        
+        .signature {
+            font-family: 'Brush Script MT', cursive;
+            font-size: clamp(1.5rem, 6vw, 2rem);
+            color: #E91E63;
+            margin-top: 20px;
+            text-align: right;
+        }
+        
+        .share-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .share-btn {
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+        }
+        
+        .whatsapp {
+            background-color: #25D366;
+        }
+        
+        .facebook {
+            background-color: #3b5998;
+        }
+        
+        .copy-link {
+            background-color: #9C27B0;
+        }
+        
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.85);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+        
+        h1 {
+            color: #E91E63;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: clamp(1.8rem, 7vw, 2.5rem);
+        }
+        /* Modal para ver fotos */
+        
+        .photo-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .photo-modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+        }
+        
+        .photo-modal-img {
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+        }
+        
+        .photo-modal-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+        
+        .photo-modal-download {
+            position: absolute;
+            bottom: -50px;
+            right: 0;
+            background: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        .butterfly {
+            position: absolute;
+            font-size: clamp(1.5rem, 7vw, 2rem);
+            animation: fly linear infinite;
+            opacity: 0.8;
+            z-index: 2;
+        }
+        
+        @keyframes fly {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% {
+                transform: translate(15px, -10px) rotate(10deg);
+            }
+            50% {
+                transform: translate(30px, 0) rotate(0deg);
+            }
+            75% {
+                transform: translate(15px, 10px) rotate(-10deg);
+            }
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+        }
+        
+        @keyframes grow {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <h1>¡Feliz Día de la Madre! 💐</h1>
+
+    <div class="card">
+        <div class="garden-preview" id="gardenPreview">
+            <!-- Flores y fotos se renderizarán aquí -->
+        </div>
+        <div class="letter-content" id="letterContent">
+            <!-- Carta se mostrará aquí -->
+        </div>
+        <div class="letter-photos" id="letterPhotosContainer">
+            <!-- Fotos adicionales de la carta -->
+        </div>
+        <div class="signature">Con todo mi amor ❤️</div>
+    </div>
+
+    <div class="share-buttons">
+        <a href="#" class="share-btn whatsapp" id="whatsappShare">
+            <i class="fab fa-whatsapp"></i> WhatsApp
+        </a>
+        <a href="#" class="share-btn facebook" id="facebookShare">
+            <i class="fab fa-facebook-f"></i> Facebook
+        </a>
+        <a href="#" class="share-btn copy-link" id="copyLinkBtn">
+            <i class="fas fa-copy"></i> Copiar Enlace
+        </a>
+    </div>
+
+    <div class="music-control" id="musicControl">
+        <i class="fas fa-music"></i>
+    </div>
+
+    <!-- Modal para ver fotos -->
+    <div class="photo-modal" id="photoModal">
+        <div class="photo-modal-content">
+            <span class="photo-modal-close" id="photoModalClose">&times;</span>
+            <img class="photo-modal-img" id="photoModalImg">
+            <a href="#" class="photo-modal-download" id="photoModalDownload">
+                <i class="fas fa-download"></i> Descargar
+            </a>
+        </div>
+    </div>
+
+    <audio id="backgroundMusic" loop>
+        <source src="mama.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Elementos del DOM
+        const gardenPreview = document.getElementById('gardenPreview');
+        const letterContent = document.getElementById('letterContent');
+        const letterPhotosContainer = document.getElementById('letterPhotosContainer');
+        const musicControl = document.getElementById('musicControl');
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const whatsappShare = document.getElementById('whatsappShare');
+        const facebookShare = document.getElementById('facebookShare');
+        const copyLinkBtn = document.getElementById('copyLinkBtn');
+        const photoModal = document.getElementById('photoModal');
+        const photoModalImg = document.getElementById('photoModalImg');
+        const photoModalClose = document.getElementById('photoModalClose');
+        const photoModalDownload = document.getElementById('photoModalDownload');
+
+        let isMusicPlaying = false;
+        let gardenData = {};
+        let currentPhotoUrl = '';
+
+        // Tipos de flores (debe coincidir con la página principal)
+        const flowerTypes = ['🌹', '🌸', '🌺', '🌻', '🌼', '🌷', '💐', '🏵️'];
+
+        // Cargar datos
+        function loadData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const previewMode = urlParams.get('preview');
+            const dataParam = urlParams.get('data');
+
+            if (previewMode) {
+                // Modo vista previa (desde el editor)
+                gardenData.flowers = JSON.parse(localStorage.getItem('mothersDayGarden') || '[]').filter(item => item.type === 'flower');
+                gardenData.photos = JSON.parse(localStorage.getItem('mothersDayGarden') || '[]').filter(item => item.type === 'photo');
+                gardenData.letter = localStorage.getItem('mothersDayLetter') || '';
+                gardenData.additionalPhotos = JSON.parse(localStorage.getItem('mothersDayPhotos') || '[]');
+            } else if (dataParam) {
+                // Datos compartidos por URL
+                gardenData = JSON.parse(decodeURIComponent(dataParam));
+            } else {
+                // Datos por defecto (no debería ocurrir)
+                gardenData = {
+                    flowers: [{
+                        type: 'flower',
+                        content: 1,
+                        x: 100,
+                        y: 100,
+                        size: 30,
+                        color: '#E91E63'
+                    }, {
+                        type: 'flower',
+                        content: 3,
+                        x: 200,
+                        y: 150,
+                        size: 35,
+                        color: '#FF9800'
+                    }],
+                    photos: [],
+                    letter: "Querida mamá,\n\nEste es un regalo especial para ti.\n\nTe amo mucho.",
+                    additionalPhotos: []
+                };
+            }
+
+            renderGarden();
+            renderLetter();
+            setupShareButtons();
+            createButterflies(3);
+            setupPhotoViewer();
+        }
+
+        function renderGarden() {
+            gardenPreview.innerHTML = '';
+
+            // Renderizar flores
+            if (gardenData.flowers && gardenData.flowers.length > 0) {
+                gardenData.flowers.forEach(flower => {
+                    const flowerElement = document.createElement('div');
+                    flowerElement.className = 'flower';
+                    flowerElement.innerHTML = flowerTypes[flower.content];
+                    flowerElement.style.left = `${(flower.x / window.innerWidth) * 100}%`;
+                    flowerElement.style.top = `${(flower.y / window.innerHeight) * 100}%`;
+                    flowerElement.style.fontSize = `${flower.size}px`;
+                    flowerElement.style.color = flower.color;
+                    flowerElement.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    flowerElement.style.animation = 'grow 0.5s ease-out';
+
+                    gardenPreview.appendChild(flowerElement);
+                });
+            }
+
+            // Renderizar fotos en el jardín
+            if (gardenData.photos && gardenData.photos.length > 0) {
+                gardenData.photos.forEach(photo => {
+                    const photoElement = document.createElement('img');
+                    photoElement.className = 'garden-photo';
+                    photoElement.src = photo.content;
+                    photoElement.style.left = `${(photo.x / window.innerWidth) * 100}%`;
+                    photoElement.style.top = `${(photo.y / window.innerHeight) * 100}%`;
+                    photoElement.style.animation = 'grow 0.5s ease-out';
+                    photoElement.dataset.photoUrl = photo.content;
+
+                    gardenPreview.appendChild(photoElement);
+                });
+            }
+
+            // Si no hay nada, mostrar jardín por defecto
+            if ((!gardenData.flowers || gardenData.flowers.length === 0) &&
+                (!gardenData.photos || gardenData.photos.length === 0)) {
+                const defaultFlowers = [{
+                    content: 1,
+                    x: 100,
+                    y: 100,
+                    size: 30,
+                    color: '#E91E63'
+                }, {
+                    content: 3,
+                    x: 200,
+                    y: 150,
+                    size: 35,
+                    color: '#FF9800'
+                }];
+
+                defaultFlowers.forEach(flower => {
+                    const flowerElement = document.createElement('div');
+                    flowerElement.className = 'flower';
+                    flowerElement.innerHTML = flowerTypes[flower.content];
+                    flowerElement.style.left = `${(flower.x / window.innerWidth) * 100}%`;
+                    flowerElement.style.top = `${(flower.y / window.innerHeight) * 100}%`;
+                    flowerElement.style.fontSize = `${flower.size}px`;
+                    flowerElement.style.color = flower.color;
+                    flowerElement.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    flowerElement.style.animation = 'grow 0.5s ease-out';
+
+                    gardenPreview.appendChild(flowerElement);
+                });
+            }
+        }
+
+        function renderLetter() {
+            if (gardenData.letter && gardenData.letter.trim() !== '') {
+                letterContent.textContent = gardenData.letter;
+            } else {
+                letterContent.textContent = "Querida mamá,\n\nEste jardín fue creado con mucho amor solo para ti.\n\nEres la mejor mamá del mundo.";
+            }
+
+            // Renderizar fotos adicionales de la carta
+            if (gardenData.additionalPhotos && gardenData.additionalPhotos.length > 0) {
+                letterPhotosContainer.innerHTML = '';
+                gardenData.additionalPhotos.forEach(photoUrl => {
+                    const photoElement = document.createElement('img');
+                    photoElement.className = 'letter-photo';
+                    photoElement.src = photoUrl;
+                    photoElement.style.animation = 'grow 0.5s ease-out';
+                    photoElement.dataset.photoUrl = photoUrl;
+
+                    letterPhotosContainer.appendChild(photoElement);
+                });
+            }
+        }
+
+        function setupPhotoViewer() {
+            // Eventos para fotos en el jardín
+            document.querySelectorAll('.garden-photo').forEach(photo => {
+                photo.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showPhotoModal(photo.dataset.photoUrl);
+                });
+            });
+
+            // Eventos para fotos en la carta
+            document.querySelectorAll('.letter-photo').forEach(photo => {
+                photo.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showPhotoModal(photo.dataset.photoUrl);
+                });
+            });
+
+            // Cerrar modal
+            photoModalClose.addEventListener('click', () => {
+                photoModal.style.display = 'none';
+            });
+
+            // Cerrar al hacer clic fuera de la imagen
+            photoModal.addEventListener('click', (e) => {
+                if (e.target === photoModal) {
+                    photoModal.style.display = 'none';
+                }
+            });
+
+            // Configurar descarga
+            photoModalDownload.addEventListener('click', (e) => {
+                e.preventDefault();
+                downloadPhoto(currentPhotoUrl);
+            });
+        }
+
+        function showPhotoModal(photoUrl) {
+            currentPhotoUrl = photoUrl;
+            photoModalImg.src = photoUrl;
+            photoModal.style.display = 'flex';
+
+            // Actualizar enlace de descarga
+            photoModalDownload.href = photoUrl;
+            photoModalDownload.download = `foto-mama-${Date.now()}.jpg`;
+        }
+
+        function downloadPhoto(photoUrl) {
+            const link = document.createElement('a');
+            link.href = photoUrl;
+            link.download = `foto-mama-${Date.now()}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function createButterflies(count) {
+            for (let i = 0; i < count; i++) {
+                const butterfly = document.createElement('div');
+                butterfly.className = 'butterfly';
+                butterfly.innerHTML = '🦋';
+                butterfly.style.left = `${Math.random() * 100}%`;
+                butterfly.style.top = `${Math.random() * 100}%`;
+                butterfly.style.fontSize = `${Math.random() * 20 + 20}px`;
+                butterfly.style.color = `hsl(${Math.random() * 360}, 80%, 60%)`;
+                butterfly.style.animationDuration = `${Math.random() * 15 + 10}s`;
+
+                gardenPreview.appendChild(butterfly);
+            }
+        }
+
+        function setupShareButtons() {
+            const shareText = "Mira el jardín especial que creé para el Día de la Madre:";
+            const currentUrl = window.location.href.split('?')[0] + '?data=' + encodeURIComponent(JSON.stringify(gardenData));
+
+            whatsappShare.href = `https://wa.me/?text=${encodeURIComponent(shareText + " " + currentUrl)}`;
+            facebookShare.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
+
+            copyLinkBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                navigator.clipboard.writeText(currentUrl)
+                    .then(() => alert('Enlace copiado al portapapeles'))
+                    .catch(() => prompt('Copiar este enlace:', currentUrl));
+            });
+        }
+
+        function toggleMusic() {
+            if (isMusicPlaying) {
+                backgroundMusic.pause();
+                musicControl.innerHTML = '<i class="fas fa-music"></i>';
+            } else {
+                backgroundMusic.play()
+                    .then(() => isMusicPlaying = true)
+                    .catch(e => console.log("Error al reproducir:", e));
+                musicControl.innerHTML = '<i class="fas fa-pause"></i>';
+            }
+            isMusicPlaying = !isMusicPlaying;
+        }
+
+        // Inicializar
+        musicControl.addEventListener('click', toggleMusic);
+        backgroundMusic.volume = 0.3;
+
+        // Intentar reproducción automática
+        document.body.addEventListener('click', () => {
+            backgroundMusic.play().then(() => isMusicPlaying = true)
+                .catch(e => console.log("Autoplay bloqueado:", e));
+        }, {
+            once: true
+        });
+
+        window.addEventListener('load', loadData);
+    </script>
+</body>
+
+</html>
